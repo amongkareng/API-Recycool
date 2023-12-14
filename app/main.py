@@ -71,6 +71,8 @@ def is_valid_uuid(val):
     except ValueError:
         return False
 
+
+#Building API
 @app.route('/')
 def index():
     return render_template('index.html', message='Welcome to API.')
