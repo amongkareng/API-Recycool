@@ -73,7 +73,7 @@ def is_valid_uuid(val):
 
 @app.route('/')
 def index():
-    return render_template('')
+    return render_template('index.html', message='Welcome to API.')
 
 # Post Method
 @app.route('/recycool', methods=['POST'])
