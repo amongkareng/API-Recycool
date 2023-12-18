@@ -12,7 +12,7 @@ import uuid
 
 # Model to Use
 predicted_results = []
-model_path = './models/Multiclass-Recycool.h5'
+model_path = './models/MulticlassRecycool.h5'
 loaded_model = load_model(model_path)
 
 def processed_image(image_path):
