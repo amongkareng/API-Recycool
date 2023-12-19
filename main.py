@@ -58,8 +58,6 @@ def processed_image(image_path):
 
     return jsonify(response)
 
-
-
 # create flask app
 app = Flask(__name__)
 
@@ -121,7 +119,7 @@ def predict():
         predicted_class_index = np.argmax(prediction)
         confidence_score = np.max(prediction)
 
-        class_names = ['Kaca', 'Kardus', 'Kertas', 'Makanan', 'Plastik']
+        class_names = ['Kaca', 'Kardus', 'Kertas', 'Organik', 'Plastik']
 
         predicted_class_name = class_names[predicted_class_index]
         
@@ -224,4 +222,4 @@ def delete_prediction(unique_id):
 
 # Run flask server
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True)
