@@ -11,8 +11,10 @@ from PIL import Image
 import io
 
 
+
+
 # Model to Use
-predictions = {}
+predicted_results = []
 model_path = './models/MulticlassRecycool.h5'
 loaded_model = load_model(model_path)
 
@@ -54,7 +56,6 @@ def recycool():
                 'message': 'No data available'
             }
             return make_response(jsonify(error_response), 404)
-        
     elif request.method == 'POST':
         try:
             # Error Handling
@@ -131,18 +132,23 @@ def get_prediction(unique_id):
         }
         return make_response(jsonify(error_response), 400)
 
-    if unique_id in predictions:
-        response = {
-            'status': 'Success',
-            'data': predictions[unique_id]
-        }
-        return make_response(jsonify(response), 200)
+    found = False
+    for prediction in predicted_results:
+        if prediction['ID'] == unique_id:
+            found = True
+            response = {
+                'status': 'Success',
+                'data': prediction
+            }
+            return make_response(jsonify(response), 200)
     
-    error_response = {
-        'status': 'ERROR 404',
-        'message': 'Not found for the given ID'
-    }
-    return make_response(jsonify(error_response), 404)
+    if not found:
+        error_response = {
+            'status': 'ERROR 404',
+            'message': 'Not found for the given ID'
+        }
+        return make_response(jsonify(error_response), 404)
+
 
 # Delete Method
 @app.route('/recycool/<string:unique_id>', methods=['DELETE'])
