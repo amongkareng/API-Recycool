@@ -3,7 +3,7 @@ runtime: python39
 
 instance_class: B4
 
-basic_scaling:
+ba
   max_instances: 5 
   idle_timeout: 10m
 
