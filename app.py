@@ -11,12 +11,6 @@ from PIL import Image
 import io
 
 
-from PIL import Image
-import io
-
-
-
-
 # Model to Use
 predictions = {}
 model_path = './models/MulticlassRecycool.h5'
