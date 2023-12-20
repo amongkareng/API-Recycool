@@ -15,7 +15,7 @@ import io
 
 
 # Model to Use
-predicted_results = []
+predictions = {}
 model_path = './models/MulticlassRecycool.h5'
 loaded_model = load_model(model_path)
 
@@ -96,7 +96,8 @@ def predict():
             'insertedAt': timestamp
         }
 
-        predicted_results.append(prediction_result)
+        # Store prediction in the predictions dictionary
+        predictions[unique_id] = prediction_result
         
         response = {
             'status': 'success',
@@ -114,11 +115,11 @@ def predict():
 
 # Get Method
 @app.route('/recycool', methods=['GET'])
-def get_result():
-    if predicted_results:
+def get_results():
+    if predictions:
         response = {
             'status': 'Success',
-            'data': predicted_results
+            'data': list(predictions.values())  # Convert dictionary values to a list
         }
         return make_response(jsonify(response), 200)
     else:
@@ -138,23 +139,18 @@ def get_prediction(unique_id):
         }
         return make_response(jsonify(error_response), 400)
 
-    found = False
-    for prediction in predicted_results:
-        if prediction['ID'] == unique_id:
-            found = True
-            response = {
-                'status': 'Success',
-                'data': prediction
-            }
-            return make_response(jsonify(response), 200)
-    
-    if not found:
-        error_response = {
-            'status': 'ERROR 404',
-            'message': 'Not found for the given ID'
+    if unique_id in predictions:
+        response = {
+            'status': 'Success',
+            'data': predictions[unique_id]
         }
-        return make_response(jsonify(error_response), 404)
-
+        return make_response(jsonify(response), 200)
+    
+    error_response = {
+        'status': 'ERROR 404',
+        'message': 'Not found for the given ID'
+    }
+    return make_response(jsonify(error_response), 404)
 
 # Delete Method
 @app.route('/recycool/<string:unique_id>', methods=['DELETE'])
