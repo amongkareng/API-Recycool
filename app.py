@@ -8,6 +8,10 @@ import jsonify
 from flask import jsonify, make_response
 from datetime import datetime
 import uuid
+from PIL import Image
+import io
+
+
 
 
 # Model to Use
@@ -15,48 +19,6 @@ predicted_results = []
 model_path = './models/MulticlassRecycool.h5'
 loaded_model = load_model(model_path)
 
-def processed_image(image_path):
-    file = request.files['file']
-    filepath = f'static/temp/{file.filename}'
-    file.save(filepath) # save to directory
-    # Read and preprocess the image
-    img = cv2.imread(image_path)
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_resized = cv2.resize(img_rgb, (256, 256))
-    img_normalized = img_resized / 255.0 
-
-    # Perform inference
-    prediction = loaded_model.predict(np.expand_dims(img_normalized, axis=0))
-
-    # Get the predicted class index and confidence score
-    predicted_class_index = np.argmax(prediction)
-    confidence_score = np.max(prediction)
-
-    # Define class names (replace with your class names)
-    class_names = ['Kaca', 'Kardus', 'Kertas', 'Makanan', 'Plastik ']
-
-    # Get the class name based on the predicted index
-    predicted_class_name = class_names[predicted_class_index]
-
-    # Overlay bounding box and text on the image
-    h, w, _ = img.shape
-    ymin, xmin, ymax, xmax = 50, 50, 200, 200
-    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-    label = f'{predicted_class_name}: {confidence_score:.2f}'
-    cv2.putText(img, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
-    # Display the image with the bounding box and label
-    cv2.imshow('Detected Image', img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    # Prepare response JSON
-    response = {
-        'predicted_class': predicted_class_name,
-        'confidence_score': float(confidence_score),
-        'image_path': f"{request.url_root}{filepath}"
-    }
-
-    return jsonify(response)
 
 # create flask app
 app = Flask(__name__)
@@ -106,21 +68,19 @@ def predict():
         
         # Processing Logic
         file = request.files['file']
-        filepath = f'static/temp/{file.filename}'
-        file.save(filepath)
+        img = Image.open(io.BytesIO(file.read()))
 
-        # Process
-        img = cv2.imread(filepath)
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img_resized = cv2.resize(img_rgb, (256, 256))
-        img_normalized = img_resized / 255.0
-        prediction = loaded_model.predict(np.expand_dims(img_normalized, axis=0))
+        # Process the image directly from memory
+        img_rgb = img.convert('RGB')
+        img_resized = img_rgb.resize((256, 256))
+        img_array = np.array(img_resized) / 255.0
+        img_normalized = np.expand_dims(img_array, axis=0)
 
+        prediction = loaded_model.predict(img_normalized)
         predicted_class_index = np.argmax(prediction)
         confidence_score = np.max(prediction)
 
         class_names = ['Kaca', 'Kardus', 'Kertas', 'Organik', 'Plastik']
-
         predicted_class_name = class_names[predicted_class_index]
         
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -133,7 +93,6 @@ def predict():
             'ID': unique_id,
             'predicted_class': predicted_class_name,
             'confidence_score': float(confidence_score),
-            'image': f"{request.url_root}{filepath}",
             'insertedAt': timestamp
         }
 
